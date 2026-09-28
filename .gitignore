@@ -1,0 +1,63 @@
+# Secrets / environment variables
+.env
+.env.*
+!.env.example
+
+# Local grading configuration (commit grading.example.toml instead)
+grading.toml
+grading.local.toml
+batch_summary.json
+completion_report.json
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# IDE / OS files
+.vscode/
+.idea/
+.DS_Store
+
+# Local runtime data / Canvas cache
+data/
+canvas_downloads/
+logs/
+prompt_test_hw01/
+
+# Student submissions / generated grading outputs
+students/
+submissions/
+materials/
+*.pdf
+*.csv
+
+# Generated JSON / prompts / records
+grade.json
+record.json
+manifest.json
+roster.json
+course_info.json
+assignment_info.json
+assignment_config.json
+assignment_structure.json
+presence_schema.json
+grading_schema.json
+prompt_presence.txt
+prompt_grading.txt
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# Misc
+*.log
+
+
+test.py

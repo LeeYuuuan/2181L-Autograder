@@ -1,0 +1,6 @@
+# Copy to grading.toml, then enter Canvas IDs from the --list-* commands.
+course_id = 0
+assignment_ids = [] # Example: [123, 124]
+section_ids = []    # Example: [456, 457]
+mode = "preview"   # preview: local reports only; apply: write grades
+output_dir = "data/completion"
