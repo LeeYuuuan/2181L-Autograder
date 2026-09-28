@@ -1,32 +1,39 @@
 # 2181L Lab AutoGrader
 
-为 Canvas 的 Lab / Prelab / Postlab 批量评分：已提交给满分，未提交跳过，不发送评论。不需要 LLM。
-支持指定多个作业和多个 section；每个作业分别输出提交统计与未交名单。
+Batch grade Canvas Lab, Prelab, and Postlab assignments: award full credit for submissions, skip students who have not submitted, and post no comments. No LLM is required.
 
-## 安装
+Select multiple assignments and course sections. Each assignment produces its own submission counts and list of students who have not submitted.
 
-使用 Python 3.11+：
+## Installation
+
+Requires Python 3.11 or later.
 
 ```powershell
 python -m pip install -r requirements.txt
 ```
 
-## Token 配置
+## Authentication
 
-在本地 `.env` 设置 `CANVAS_API_URL`，例如：
+Set the Canvas URL in a local `.env` file:
 
 ```dotenv
 CANVAS_API_URL=https://uncc.instructure.com
 ```
 
-Token 支持两种方式：
+Provide your Canvas token using either method:
 
-- 在环境变量或 `.env` 中设置 `CANVAS_TOKEN`。
-- 用 Windows 凭据管理器保存：`python -m keyring set canvas-autograder CANVAS_TOKEN`，按提示输入。
+- Set `CANVAS_TOKEN` in your environment or local `.env` file.
+- Store it using Windows Credential Manager through keyring:
 
-优先顺序：程序显式传入的 Token → 环境变量（含已加载的 `.env`）→ keyring。命令行使用时，环境变量或 `.env` 优先于 keyring；已有进程环境变量优先于 `.env`。空白 Token 视为未设置。只有环境中没有 Token 时才访问 keyring。
+```powershell
+python -m keyring set canvas-autograder CANVAS_TOKEN
+```
 
-## 查询与评分
+Enter the token at the prompt.
+
+Token precedence is: an explicit Python function argument, then the environment (including values loaded from `.env`), then keyring. Existing process environment variables take precedence over `.env`. Empty or whitespace-only tokens are treated as unset. Keyring is accessed only when no higher-priority token is available.
+
+## Find Courses, Assignments, and Sections
 
 ```powershell
 python completion.py --list-courses
@@ -34,8 +41,13 @@ python completion.py --course-id 123 --list-assignments
 python completion.py --course-id 123 --list-sections
 ```
 
-首次使用，把 `grading.example.toml` 复制为 `grading.toml`。已有本地配置无需覆盖。
-填写查询到的 Canvas ID：
+Replace `123` with your Canvas course ID. The assignment list includes each assignment's grading type and maximum points.
+
+## Configure and Run Batch Grading
+
+For initial setup, copy `grading.example.toml` to `grading.toml`. Keep any existing local configuration.
+
+Fill in the Canvas IDs returned by the list commands, not the numbered positions in an interactive selection list:
 
 ```toml
 course_id = 123
@@ -45,24 +57,41 @@ mode = "preview"
 output_dir = "data/completion"
 ```
 
+Run:
+
 ```powershell
 python completion.py --config grading.toml
 ```
 
-`preview` 只生成本地报告。确认后将 `mode` 改为 `"apply"`，用同一命令写分。多个 section 的学生取并集并去重；未选班次不评分。Complete/Incomplete 写入 Complete，其他计分类型写满分；不计分作业只统计。迟交提交也给满分，会取消该提交的自动迟交扣分。
+`preview` generates local reports without changing Canvas. After reviewing the results, change `mode` to `"apply"` and run the same command to write grades.
 
-报告默认保存在 `data/completion/`。详情见 [中文使用说明](COMPLETION_GUIDE.md)，包括外部工具、免交和小组作业的处理限制。
+Students in the selected sections are combined and deduplicated. Students outside those sections are not graded. Each assignment is handled according to its own grading type:
 
-## Git 与测试
+- Complete/Incomplete: award Complete.
+- Points: award the assignment's maximum points.
+- Percent, letter grade, or GPA scale: submit 100%; Canvas applies the assignment's grading scheme.
+- Not graded: report submission status without writing grades.
 
-提交 `grading.example.toml`；本地 `grading.toml`、`.env` 和 `data/` 已被忽略。不要强制添加本地凭据或学生报告。
+Students who have not submitted are skipped, including any existing grades. Excused students are skipped. Late submissions also receive full credit; the program clears the submission's automatic late penalty without changing the course-wide policy. No comments or feedback are posted.
+
+Reports are saved under `data/completion/` by default. See the [detailed usage guide (Chinese)](COMPLETION_GUIDE.md) for handling of external tools, unknown submission states, excused work, and group assignments.
+
+## Git and Tests
+
+Commit `grading.example.toml`. The local `grading.toml`, `.env`, and `data/` directory are ignored by Git. Do not force-add credentials or student reports.
 
 ```powershell
 python -m unittest discover -s tests -v
 ```
 
-测试使用模拟数据和模拟凭据，不访问 Canvas 或真实 keyring。
+Tests use mock data and credentials. They do not access Canvas or the real credential store.
 
-## 旧版流程
+## Project Structure
 
-`main.py` 及原 LLM 评分模块保留，供旧作业流程使用；新版入口是 `completion.py`。旧版 LLM 功能可能还需安装 openai、pydantic 等额外依赖。
+- `completion.py`: command-line entry point.
+- `src/canvas_ops.py`: Canvas connection, token lookup, and course and assignment selection.
+- `src/section_ops.py`: section listing and selection.
+- `src/completion_ops.py`: submission classification, grading, and reports.
+- `src/batch_completion.py`: TOML configuration and batch grading.
+- `grading.example.toml`: configuration template suitable for version control.
+- `tests/`: mock-based tests.
