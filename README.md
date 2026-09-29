@@ -74,7 +74,7 @@ Students in the selected sections are combined and deduplicated. Students outsid
 
 Students who have not submitted are skipped, including any existing grades. Excused students are skipped. Late submissions also receive full credit; the program clears the submission's automatic late penalty without changing the course-wide policy. No comments or feedback are posted.
 
-Reports are saved under `data/completion/` by default. See the [detailed usage guide (Chinese)](COMPLETION_GUIDE.md) for handling of external tools, unknown submission states, excused work, and group assignments.
+Reports are saved under `data/completion/` by default. See the [detailed usage guide](COMPLETION_GUIDE.md) for handling of external tools, unknown submission states, excused work, and group assignments.
 
 ## Git and Tests
 
